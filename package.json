@@ -1,0 +1,28 @@
+{
+  "name": "dojo-dapp-connect6",
+  "version": "1.0.0",
+  "description": " decentralized connenct6 game on eth with web3 and truffle react ",
+  "main": "",
+  "directories": {},
+  "dependencies": {
+    "ganache-cli": "*",
+    "truffle": "*"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@stash.netconomy.net:7999/~ssauperl/dojo-dapp-connect6.git"
+  },
+  "keywords": [
+    "eth",
+    "truffle",
+    "dapp",
+    "connect6",
+    "web3"
+  ],
+  "author": "Simon Šauperl",
+  "license": " GPL-3.0-or-later"
+}
