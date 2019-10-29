@@ -12,3 +12,57 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+.gameboard {
+  display: grid;
+  grid-template-columns: repeat(19, 0fr);
+}
+
+
+.intersection {
+  width: 40px;
+  height: 40px;
+
+}
+
+.intersection:before {
+  border-top: 2px #000 solid;
+  display: block;
+  content: "";
+  top: 18px;
+  position: relative;
+  z-index: -1;
+}
+
+.intersection:after {
+  border-left: 2px #000 solid;
+  height: 100%;
+  display: block;
+  content: "";
+  left: 18px;
+  top: 18px;
+  position: relative;
+  z-index: -1;
+}
+
+.intersection:nth-child(19n)::before {
+  width: 50%;
+}
+.intersection:nth-child(19n+1)::before {
+  left: 18px;
+}
+.intersection:nth-child(n+343)::after {
+  border-left: none;
+}
+
+.intersection.black, .intersection.white {
+  border: 1px solid #000;
+}
+
+.intersection.black {
+  background-color: #444;
+}
+
+.intersection.white {
+  background-color: #eee;
+}
