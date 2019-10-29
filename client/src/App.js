@@ -57,7 +57,9 @@ class App extends Component {
 <div className="gameboard">
             {[...Array(19)].map((object, y) =>
                 {return [...Array(19)].map((x, i) =>
-              <div className="intersection" key={`${x}${y}`} />
+              <div className="intersection" key={`${x}${y}`} >
+                <div className='dot'></div>
+              </div>
             )}
             )}
 </div>

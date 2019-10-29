@@ -22,10 +22,20 @@ code {
 .intersection {
   width: 40px;
   height: 40px;
+  position: relative;
+
 
 }
+.intersection .dot{
+  height: 28px;
+  width: 28px;
+  border-radius: 50%;
+  position: absolute;
+  top:5px;
+  left:5px;
+}
 
-.intersection:before {
+.intersection::before {
   border-top: 2px #000 solid;
   display: block;
   content: "";
@@ -34,7 +44,7 @@ code {
   z-index: -1;
 }
 
-.intersection:after {
+.intersection::after {
   border-left: 2px #000 solid;
   height: 100%;
   display: block;
@@ -55,14 +65,14 @@ code {
   border-left: none;
 }
 
-.intersection.black, .intersection.white {
+.intersection .dot.black, .intersection .dot.white {
   border: 1px solid #000;
 }
 
-.intersection.black {
+.intersection .dot.black {
   background-color: #444;
 }
 
-.intersection.white {
+.intersection .dot.white {
   background-color: #eee;
 }
