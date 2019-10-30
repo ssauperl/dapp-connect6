@@ -1,13 +1,29 @@
 import React, { Component } from "react";
+
+import Intersection from "./components/Intersection"
+import { GameContext, dotsColor } from './game-context';
 // import SimpleStorageContract from "./contracts/SimpleStorage.json";
 // import getWeb3 from "./utils/getWeb3";
 
 import "./App.css";
 
 class App extends Component {
-  state = { storageValue: 0, web3: null, accounts: null, contract: null };
+  state = { gameboard: new Array(), playerColor: dotsColor.BLACK, web3: null, accounts: null, contract: null };
 
-  componentDidMount = async () => {
+//   constructor(props) {
+//     super(props);
+//     const gameboard = new Array(19).map((o) =>{return new Array(19)});
+//     this.setState({ gameboard: gameboard });
+// }
+  componentDidMount = ()=>{
+
+    //not good todo
+    const gameboard = new Array(19).map((o) =>{return new Array(19)});
+    this.setState({ gameboard });
+  }
+  //componentDidMount = async () => {
+
+
     // try {
     //   // Get network provider and web3 instance.
     //   const web3 = await getWeb3();
@@ -33,6 +49,20 @@ class App extends Component {
     //   );
     //   console.error(error);
     // }
+
+    //const gameboard = new Array(new Array());
+  //}
+
+  handlePlaceDot = (evt, x, y) => {
+    //const { x,y } = evt.target;
+    const { playerColor } = this.state;
+    //board[x, y] = playerColor;
+    this.setState(prevState => ({
+      board: {
+        ...prevState.board,
+        [prevState.board[x][y]]: playerColor,
+      },
+    }));
   };
 
   runExample = async () => {
@@ -52,20 +82,24 @@ class App extends Component {
     // if (!this.state.web3) {
     //   //return <div>Loading Web3, accounts, and contract...</div>;
     // }
+    const { gameboard } = this.state;
+    const wef =gameboard.map((yElement, y)=>{return yElement});
     return (
       <div className="App">
-<div className="gameboard">
-            {[...Array(19)].map((object, y) =>
-                {return [...Array(19)].map((x, i) =>
-              <div className="intersection" key={`${x}${y}`} >
-                <div className='dot'></div>
-              </div>
-            )}
-            )}
-</div>
+        <div className="gameboard">
+          {gameboard.map((yElement, y) => {
+            return yElement.map((xElement, x) =>
+              <Intersection key={`${x}${y}`}
+                dot={xElement}
+                handlePlaceDot={(e) => this.handlePlaceDot(e, x, y)} />
+            )
+          }
+          )}
+        </div>
       </div>
     );
   }
 }
 
+//App.contextType = GameContext;
 export default App;
