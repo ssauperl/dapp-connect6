@@ -16,9 +16,8 @@ class App extends Component {
 //     this.setState({ gameboard: gameboard });
 // }
   componentDidMount = ()=>{
-
-    //not good todo
-    const gameboard = new Array(19).map((o) =>{return new Array(19)});
+    // for some reason we have to deconstruct else is mapped as only 1 element
+    const gameboard = [... new Array(19)].map((o) =>{return new Array(19)});
     this.setState({ gameboard });
   }
   //componentDidMount = async () => {
@@ -54,15 +53,12 @@ class App extends Component {
   //}
 
   handlePlaceDot = (evt, x, y) => {
-    //const { x,y } = evt.target;
-    const { playerColor } = this.state;
-    //board[x, y] = playerColor;
-    this.setState(prevState => ({
-      board: {
-        ...prevState.board,
-        [prevState.board[x][y]]: playerColor,
-      },
-    }));
+    const { gameboard, playerColor } = this.state;
+
+    const updatedGameboard = Object.assign([], gameboard);
+    updatedGameboard[y][x]=playerColor;
+    
+    this.setState({gameboard: updatedGameboard});
   };
 
   runExample = async () => {
@@ -83,12 +79,11 @@ class App extends Component {
     //   //return <div>Loading Web3, accounts, and contract...</div>;
     // }
     const { gameboard } = this.state;
-    const wef =gameboard.map((yElement, y)=>{return yElement});
     return (
       <div className="App">
         <div className="gameboard">
-          {gameboard.map((yElement, y) => {
-            return yElement.map((xElement, x) =>
+          {[... gameboard].map((yElement, y) => {
+            return [... yElement].map((xElement, x) =>
               <Intersection key={`${x}${y}`}
                 dot={xElement}
                 handlePlaceDot={(e) => this.handlePlaceDot(e, x, y)} />
