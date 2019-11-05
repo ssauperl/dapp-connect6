@@ -53,8 +53,8 @@ contract Connect6 {
   }
   
 
-function fullBoard(uint game_num) public view returns (uint8[] memory) {
-  uint8[19*19] memory flattendBoard;
+function fullBoard(uint game_num) public view returns (uint8[361] memory flattendBoard) {
+  //19*19=361+1
   uint8 boardIndex = 0;
   for (uint8 i = 0; i < 19; i++) {
     for (uint8 j = 0; j < 19; j++) {
