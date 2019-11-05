@@ -8,7 +8,7 @@ import { GameContext, dotsColor } from './game-context';
 import "./App.css";
 
 class App extends Component {
-  state = { gameboard: new Array(), playerColor: dotsColor.BLACK, web3: null, accounts: null, contract: null };
+  state = { gameboard: new Array(), turn:0, playerColor: dotsColor.WHITE, web3: null, accounts: null, contract: null };
 
 //   constructor(props) {
 //     super(props);
