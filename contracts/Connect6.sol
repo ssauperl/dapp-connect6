@@ -2,12 +2,12 @@ pragma solidity ^0.5.0;
 contract Connect6 {
 
   uint8 constant public board_size = 19;
+  uint8 constant public win_size = 6;
 
   Game[] public games;
 
   struct Game {
       mapping(uint8 => mapping(uint8 => uint8)) board;
-      uint8[] move_history;
       address[3] players;
       // 0 means game did not start yet
       uint8 turn;
@@ -51,19 +51,101 @@ contract Connect6 {
     g.deadline = now + g.time_per_move;
     emit LogGameStarted(game_num);
   }
-  
 
-function fullBoard(uint game_num) public view returns (uint8[361] memory flattendBoard) {
-  //19*19=361+1
-  uint8 boardIndex = 0;
-  for (uint8 i = 0; i < 19; i++) {
-    for (uint8 j = 0; j < 19; j++) {
-      flattendBoard[boardIndex] = games[game_num].board[i][j];
-      boardIndex++;
+  function single_move(uint game_num, uint8 x, uint8 y) internal {
+    if (x > board_size || y > board_size) {
+      revert("Placing dot outside of the board");
+    }
+    Game storage g = games[game_num];
+    if (g.board[x][y] != 0) {
+      revert("Position already taken");
+    }
+    g.board[x][y] = g.turn;
+  }
+
+  function make_move(uint game_num, uint8 x1, uint8 y1, uint8 x2, uint8 y2) public payable {
+    Game storage g = games[game_num];
+    if (msg.sender != g.players[g.turn]) {
+      revert("game has finished");
+    }
+    if (msg.sender != g.players[g.turn]) {
+      revert("is not your turn");
+    }
+    single_move(game_num, x1, y1);
+    single_move(game_num, x2, y2);
+    g.turn = 3 - g.turn;
+    g.deadline = now + g.time_per_move;
+    emit LogMoveMade(game_num, x1, y1, x2, y2);
+  }
+
+  function fullBoard(uint game_num) public view returns (uint16[361] memory flattendBoard) {
+    //19*19=361
+    uint16 boardIndex = 0;
+    for (uint8 y = 0; y < board_size; y++) {
+      for (uint8 x = 0; x < board_size; x++) {
+        flattendBoard[boardIndex] = games[game_num].board[x][y];
+        boardIndex++;
+      }
     }
   }
-} 
-function board(uint game_num, uint8 x, uint8 y) public view returns (uint8) {
-    return games[game_num].board[x][y];
+  
+  function board(uint game_num, uint8 x, uint8 y) public view returns (uint8) {
+      return games[game_num].board[x][y];
+    }
+
+  function claim_victory(uint game_num, uint8 player_num) public returns (uint8) {
+      Game storage g = games[game_num];
+      // Horizontal check
+      for (uint8 y = 0; y < board_size; y++) {
+        uint8 count = 0;
+        for (uint8 x = 0; x < board_size; x++) {
+          if (g[x][y]==player_num){
+            count ++;
+          }
+          else {
+              count = 0;
+          }
+          if (count >= win_size) {
+              return player_num;
+          }
+        }
+      }
+
+      // Vertical check
+      for (uint8 x = 0; x < board_size; x++) {
+        uint8 count = 0;
+        for (uint8 y = 0; y < board_size; y++) {
+          if (g[x][y]==player_num){
+            count ++;
+          }
+          else {
+              count = 0;
+          }
+          if (count >= win_size) {
+              return player_num;
+          }
+        }
+      }
+
+    // top-left to bottom-right - green diagonals
+    for (uint8 rowStart = 0; rowStart < board_size; rowStart++) {
+      uint8 count = 0;
+      uint8 x = 0;
+      uint8 y = rowStart;
+      while (y < board_size && x < board_size) {
+        if (g[x][y]==player_num){
+          count ++;
+        }
+        else {
+            count = 0;
+        }
+        if (count >= win_size) {
+            return player_num;
+        }
+        x++;
+        y++;
+      }
+    }
+  return 0;
   }
 }
