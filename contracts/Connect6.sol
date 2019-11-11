@@ -73,9 +73,17 @@ contract Connect6 {
     }
     single_move(game_num, x1, y1);
     single_move(game_num, x2, y2);
-    g.turn = 3 - g.turn;
     g.deadline = now + g.time_per_move;
     emit LogMoveMade(game_num, x1, y1, x2, y2);
+    uint8 victor = check_victory(game_num, g.turn);
+    if (victor > 0){
+      g.winner = g.turn;
+      g.turn = 0;
+      emit LogVictory(game_num, g.winner);
+    }
+    else {
+      g.turn = 3 - g.turn;
+    }
   }
 
 function fullBoard(uint game_num) public view returns (uint16[361] memory flattendBoard) {
@@ -92,7 +100,7 @@ function board(uint game_num, uint8 x, uint8 y) public view returns (uint8) {
     return games[game_num].board[x][y];
   }
 
-function claim_victory(uint game_num, uint8 player_num) public returns (uint8) {
+function check_victory(uint game_num, uint8 player_num) public view returns (uint8) {
     Game storage g = games[game_num];
     // Horizontal check
     for (uint8 y = 0; y < board_size; y++) {
@@ -105,8 +113,6 @@ function claim_victory(uint game_num, uint8 player_num) public returns (uint8) {
             count = 0;
         }
         if (count >= win_size) {
-            g.winner = g.board[x][y];
-            emit LogVictory(game_num, g.winner);
             return player_num;
         }
       }
@@ -123,8 +129,6 @@ function claim_victory(uint game_num, uint8 player_num) public returns (uint8) {
             count = 0;
         }
         if (count >= win_size) {
-            g.winner = g.board[x][y];
-            emit LogVictory(game_num, g.winner);
             return player_num;
         }
       }
@@ -143,8 +147,6 @@ function claim_victory(uint game_num, uint8 player_num) public returns (uint8) {
             count = 0;
         }
         if (count >= win_size) {
-            g.winner = g.board[x][y];
-            emit LogVictory(game_num, g.winner);
             return player_num;
         }
         x++;
@@ -165,13 +167,20 @@ function claim_victory(uint game_num, uint8 player_num) public returns (uint8) {
             count = 0;
         }
         if (count >= win_size) {
-            g.winner = g.board[x][y];
-            emit LogVictory(game_num, g.winner);
-            return player_num;
+            return (player_num);
         }
         x++;
         y++;
       }
+    }
+    return 0;
+  }
+
+  function pay_winner(uint game_num) internal {
+    Game memory g = games[game_num];
+    uint amount = g.player_1_stake + g.player_2_stake;
+    if (amount > 0 && !g.players[g.winner].transfer(amount)) {
+      revert();
     }
   }
 }
