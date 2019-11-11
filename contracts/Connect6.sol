@@ -78,54 +78,57 @@ contract Connect6 {
     emit LogMoveMade(game_num, x1, y1, x2, y2);
   }
 
-  function fullBoard(uint game_num) public view returns (uint16[361] memory flattendBoard) {
-    //19*19=361
-    uint16 boardIndex = 0;
-    for (uint8 y = 0; y < board_size; y++) {
-      for (uint8 x = 0; x < board_size; x++) {
-        flattendBoard[boardIndex] = games[game_num].board[x][y];
-        boardIndex++;
-      }
+function fullBoard(uint game_num) public view returns (uint16[361] memory flattendBoard) {
+  //19*19=361
+  uint16 boardIndex = 0;
+  for (uint8 y = 0; y < board_size; y++) {
+    for (uint8 x = 0; x < board_size; x++) {
+      flattendBoard[boardIndex] = games[game_num].board[x][y];
+      boardIndex++;
     }
   }
-  
-  function board(uint game_num, uint8 x, uint8 y) public view returns (uint8) {
-      return games[game_num].board[x][y];
+} 
+function board(uint game_num, uint8 x, uint8 y) public view returns (uint8) {
+    return games[game_num].board[x][y];
+  }
+
+function claim_victory(uint game_num, uint8 player_num) public returns (uint8) {
+    Game storage g = games[game_num];
+    // Horizontal check
+    for (uint8 y = 0; y < board_size; y++) {
+      uint8 count = 0;
+      for (uint8 x = 0; x < board_size; x++) {
+        if (g.board[x][y]==player_num){
+          count ++;
+        }
+        else {
+            count = 0;
+        }
+        if (count >= win_size) {
+            g.winner = g.board[x][y];
+            emit LogVictory(game_num, g.winner);
+            return player_num;
+        }
+      }
     }
 
-  function claim_victory(uint game_num, uint8 player_num) public returns (uint8) {
-      Game storage g = games[game_num];
-      // Horizontal check
+    // Vertical check
+    for (uint8 x = 0; x < board_size; x++) {
+      uint8 count = 0;
       for (uint8 y = 0; y < board_size; y++) {
-        uint8 count = 0;
-        for (uint8 x = 0; x < board_size; x++) {
-          if (g[x][y]==player_num){
-            count ++;
-          }
-          else {
-              count = 0;
-          }
-          if (count >= win_size) {
-              return player_num;
-          }
+        if (g.board[x][y]==player_num){
+          count ++;
+        }
+        else {
+            count = 0;
+        }
+        if (count >= win_size) {
+            g.winner = g.board[x][y];
+            emit LogVictory(game_num, g.winner);
+            return player_num;
         }
       }
-
-      // Vertical check
-      for (uint8 x = 0; x < board_size; x++) {
-        uint8 count = 0;
-        for (uint8 y = 0; y < board_size; y++) {
-          if (g[x][y]==player_num){
-            count ++;
-          }
-          else {
-              count = 0;
-          }
-          if (count >= win_size) {
-              return player_num;
-          }
-        }
-      }
+    }
 
     // top-left to bottom-right - green diagonals
     for (uint8 rowStart = 0; rowStart < board_size; rowStart++) {
@@ -133,19 +136,42 @@ contract Connect6 {
       uint8 x = 0;
       uint8 y = rowStart;
       while (y < board_size && x < board_size) {
-        if (g[x][y]==player_num){
+        if (g.board[x][y]==player_num){
           count ++;
         }
         else {
             count = 0;
         }
         if (count >= win_size) {
+            g.winner = g.board[x][y];
+            emit LogVictory(game_num, g.winner);
             return player_num;
         }
         x++;
         y++;
       }
     }
-  return 0;
+
+    // top-left to bottom-right - red diagonals
+    for (uint8 colStart = 1; colStart < board_size; colStart++) {
+      uint8 count = 0;
+      uint8 x = colStart;
+      uint8 y = 0;
+      while (y < board_size && x < board_size) {
+        if (g.board[x][y]==player_num){
+          count ++;
+        }
+        else {
+            count = 0;
+        }
+        if (count >= win_size) {
+            g.winner = g.board[x][y];
+            emit LogVictory(game_num, g.winner);
+            return player_num;
+        }
+        x++;
+        y++;
+      }
+    }
   }
 }
