@@ -8,7 +8,7 @@ contract Connect6 {
 
   struct Game {
       mapping(uint8 => mapping(uint8 => uint8)) board;
-      address[3] players;
+      address payable[3] players;
       // 0 means game did not start yet
       uint8 turn;
       // Either 1 or 2. 0 means not finished
@@ -176,11 +176,27 @@ function check_victory(uint game_num, uint8 player_num) public view returns (uin
     return 0;
   }
 
-  function pay_winner(uint game_num) internal {
+  function claim_time_victory(uint game_num) public {
     Game memory g = games[game_num];
+    if (g.winner != 0) {
+      revert("game is already over");
+    }
+    if (g.deadline == 0) {
+      revert("game has no timelimit");
+    }
+    if (now <= g.deadline) {
+      revert("opponent time is not up yet");
+    }
+    g.winner = 3 - g.turn;
+    pay_winner(game_num);
+    emit LogVictory(game_num, g.winner);
+  }
+
+function pay_winner(uint game_num) internal {
+    Game storage g = games[game_num];
     uint amount = g.player_1_stake + g.player_2_stake;
-    if (amount > 0 && !g.players[g.winner].transfer(amount)) {
-      revert();
+    if (amount > 0 && !g.players[g.winner].send(amount)) {
+      revert("reward payment was unsuccessfull");
     }
   }
 }

@@ -1,10 +1,15 @@
 import React, { Component } from "react";
 
-import Intersection from "./components/Intersection"
+import ClaimTimeVictory from "./components/ClaimTimeVictory"
+import Gameboard from "./components/Gameboard"
+import GameList from "./components/GameList"
+import JoinGame from "./components/JoinGame"
+import NewGame from "./components/NewGame"
+import RestoreGame from "./components/RestoreGame"
 import { GameContext, dotsColor } from './game-context';
 // import SimpleStorageContract from "./contracts/SimpleStorage.json";
 // import getWeb3 from "./utils/getWeb3";
-
+import 'bulma/css/bulma.css';
 import "./App.css";
 
 class App extends Component {
@@ -81,16 +86,12 @@ class App extends Component {
     const { gameboard } = this.state;
     return (
       <div className="App">
-        <div className="gameboard">
-          {[... gameboard].map((yElement, y) => {
-            return [... yElement].map((xElement, x) =>
-              <Intersection key={`${x}${y}`}
-                dot={xElement}
-                handlePlaceDot={(e) => this.handlePlaceDot(e, x, y)} />
-            )
-          }
-          )}
-        </div>
+        <NewGame/>
+        <GameList/>
+        <JoinGame/>
+        <ClaimTimeVictory/>
+        <RestoreGame/>
+        <Gameboard gameboard={gameboard} handlePlaceDot={this.handlePlaceDot}/>
       </div>
     );
   }
