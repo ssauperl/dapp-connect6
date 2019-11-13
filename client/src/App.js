@@ -13,7 +13,7 @@ import 'bulma/css/bulma.css';
 import "./App.css";
 
 class App extends Component {
-  state = { gameboard: new Array(), turn:0, playerColor: dotsColor.WHITE, web3: null, accounts: null, contract: null };
+  state = { gameboard: new Array(), turn:0, playerColor: dotsColor.WHITE, web3: null, accounts: [], contract: null };
 
 //   constructor(props) {
 //     super(props);
@@ -60,9 +60,10 @@ class App extends Component {
     this.setState({ gameboard });
   }
 
-  startNewGame = async (sec_per_move, p1_stk, p2_stk) => {
+  startNewGame = async (account, sec_per_move, p1_stk, p2_stk) => {
     const {contract, web3} = this.state;
-    let result = await contract.new_game(sec_per_move, p2_stk, {from: web3.eth.accounts[0], value: p1_stk})
+    const BN = web3.utils.BN;
+    let result = await contract.methods.new_game(sec_per_move, web3.utils.toWei(p2_stk, 'ether')).send({from: account, value: web3.utils.toWei(new BN(p1_stk), 'ether')})
     console.log(result);
   };
 
@@ -79,10 +80,10 @@ class App extends Component {
     // if (!this.state.web3) {
     //   //return <div>Loading Web3, accounts, and contract...</div>;
     // }
-    const { gameboard } = this.state;
+    const { gameboard, accounts } = this.state;
     return (
       <div className="App">
-        <NewGame startNewGame={this.startNewGame}/>
+        <NewGame startNewGame={this.startNewGame} accounts={accounts}/>
         <GameList/>
         <JoinGame/>
         <ClaimTimeVictory/>

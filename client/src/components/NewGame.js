@@ -7,21 +7,30 @@ class NewGame extends Component {
         const { name, value } = evt.target;
         const { form } = this.state;
         const updatedForm = Object.assign({}, form)
-        form[name] = value;
+        updatedForm[name] = value;
         this.setState({ form: updatedForm });
     };
 
     handleSubmit = evt => {
         evt.preventDefault();
         const { startNewGame } = this.props;
-        const { timePerMove, p1Stake, p2Stake } = this.state.form;
-        startNewGame(timePerMove, p1Stake, p2Stake).catch(console.log)
+        const { timePerMove, p1Stake, p2Stake, account} = this.state.form;
+        startNewGame(account || this.props.accounts[0], timePerMove, p1Stake, p2Stake).catch(console.log)
     };
 
     render() {
-
+        const accounts = this.props.accounts || [];
+        const selectedAccount = this.state.form.account || accounts[0];
         return (
             <div>
+                <div className="select">
+                <label className="label">Account</label>
+                    <select name="account" value={selectedAccount} onChange={this.handleInputChange}>
+                        {accounts.map((account) =>
+                            <option value={account}>{account}</option>)
+                        }
+                    </select>
+                </div>
                 <div className="field">
                     <label className="label">Time Per Move (s)</label>
                     <div className="control">
