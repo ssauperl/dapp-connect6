@@ -5,6 +5,5 @@ export const dotsColor = {
 }
 
 export const GameContext = React.createContext({
-    board: Array(Array()),
-    playerColor: dotsColor.BLACK
+    gameboard: new Array(), turn: 0, playerColor: dotsColor.WHITE, web3: null, accounts: [], selectedAccount: null, contract: null
 });

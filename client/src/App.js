@@ -6,6 +6,7 @@ import GameList from "./components/GameList"
 import JoinGame from "./components/JoinGame"
 import NewGame from "./components/NewGame"
 import RestoreGame from "./components/RestoreGame"
+import SelectAccount from "./components/SelectAccount"
 import { GameContext, dotsColor } from './game-context';
 import Connect6 from "./contracts/Connect6";
 import getWeb3 from "./utils/getWeb3";
@@ -13,16 +14,16 @@ import 'bulma/css/bulma.css';
 import "./App.css";
 
 class App extends Component {
-  state = { gameboard: new Array(), turn:0, playerColor: dotsColor.WHITE, web3: null, accounts: [], contract: null };
+  state = { gameboard: new Array(), turn: 0, playerColor: dotsColor.WHITE, web3: null, accounts: [], selectedAccount: '', contract: null };
 
-//   constructor(props) {
-//     super(props);
-//     const gameboard = new Array(19).map((o) =>{return new Array(19)});
-//     this.setState({ gameboard: gameboard });
-// }
-  componentDidMount = ()=>{
+  //   constructor(props) {
+  //     super(props);
+  //     const gameboard = new Array(19).map((o) =>{return new Array(19)});
+  //     this.setState({ gameboard: gameboard });
+  // }
+  componentDidMount = () => {
     // for some reason we have to deconstruct else is mapped as only 1 element
-    
+
   }
   componentDidMount = async () => {
 
@@ -44,8 +45,9 @@ class App extends Component {
 
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
-      this.setState({ web3, accounts, contract: instance }, this.runExample);
+      this.setState({ web3, accounts, contract: instance, selectedAccount: accounts[0] }, this.runExample);
       this.initTheBoard();
+      //this.getGameList();
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -56,40 +58,70 @@ class App extends Component {
   }
 
   initTheBoard = () => {
-    const gameboard = [... new Array(19)].map((o) =>{return new Array(19)});
+    const gameboard = [... new Array(19)].map((o) => { return new Array(19) });
     this.setState({ gameboard });
   }
 
-  startNewGame = async (account, sec_per_move, p1_stk, p2_stk) => {
-    const {contract, web3} = this.state;
+  startNewGame = async (secPerMove, p1Stake, p2Stake) => {
+    const { selectedAccount } = this.state;
+    const { contract, web3 } = this.state;
     const BN = web3.utils.BN;
-    let result = await contract.methods.new_game(sec_per_move, web3.utils.toWei(p2_stk, 'ether')).send({from: account, value: web3.utils.toWei(new BN(p1_stk), 'ether')})
+    let result = await contract.methods.newGame(new String(secPerMove), web3.utils.toWei(p2Stake, 'ether')).send({ from: selectedAccount, value: web3.utils.toWei(new BN(p1Stake), 'ether') })
     console.log(result);
   };
+
+  joinGame = async (gameNumber, p2Stake) => {
+    const { selectedAccount } = this.state;
+    const { contract, web3 } = this.state;
+    const BN = web3.utils.BN;
+    let result = await contract.methods.joinGame(gameNumber).send({ from: selectedAccount, value: web3.utils.toWei(new BN(p2Stake), 'ether') })
+    console.log(result);
+  };
+
+  loadGame = async (gameNumber) => {
+    const { contract } = this.state;
+    const result = await contract.methods.fullBoard(gameNumber).call()
+    console.log(result);
+    const result2 = await contract.methods.games(gameNumber).call()
+    console.log(result2);
+  }
 
   handlePlaceDot = (evt, x, y) => {
     const { gameboard, playerColor } = this.state;
 
     const updatedGameboard = Object.assign([], gameboard);
-    updatedGameboard[y][x]=playerColor;
-    
-    this.setState({gameboard: updatedGameboard});
+    updatedGameboard[y][x] = playerColor;
+
+    this.setState({ gameboard: updatedGameboard });
   };
+
+  changeAccount = (account) => {
+    this.setState({ selectedAccount: account })
+  }
+
+  getGameList = async () => {
+    const { contract, web3 } = this.state;
+    const result = await contract.methods.getGames(0).call()
+    console.log(result);
+  }
 
   render() {
     // if (!this.state.web3) {
     //   //return <div>Loading Web3, accounts, and contract...</div>;
     // }
-    const { gameboard, accounts } = this.state;
+    const { gameboard, accounts, selectedAccount } = this.state;
     return (
-      <div className="App">
-        <NewGame startNewGame={this.startNewGame} accounts={accounts}/>
-        <GameList/>
-        <JoinGame/>
-        <ClaimTimeVictory/>
-        <RestoreGame/>
-        <Gameboard gameboard={gameboard} handlePlaceDot={this.handlePlaceDot}/>
-      </div>
+      <GameContext.Provider value={this.state}>
+        <div className="App">
+          <SelectAccount changeAccount={this.changeAccount} />
+          <NewGame startNewGame={this.startNewGame} />
+          {/* <GameList getGameList={this.getGameList}/> */}
+          <JoinGame joinGame={this.joinGame}/>
+          {/* <ClaimTimeVictory /> */}
+          <RestoreGame loadGame={this.loadGame} />
+          <Gameboard gameboard={gameboard} handlePlaceDot={this.handlePlaceDot} />
+        </div>
+      </GameContext.Provider>
     );
   }
 }
