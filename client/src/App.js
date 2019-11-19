@@ -46,7 +46,7 @@ class App extends Component {
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
       this.setState({ web3, accounts, contract: instance, selectedAccount: accounts[0] }, this.runExample);
-      this.initTheBoard();
+      //this.initTheBoard();
       //this.getGameList();
     } catch (error) {
       // Catch any errors for any of the above operations.
@@ -58,8 +58,8 @@ class App extends Component {
   }
 
   initTheBoard = () => {
-    const gameboard = [... new Array(19)].map((o) => { return new Array(19) });
-    this.setState({ gameboard });
+    //const gameboard = [... new Array(19)].map((o) => { return new Array(19) });
+    // this.setState({ gameboard });
   }
 
   startNewGame = async (secPerMove, p1Stake, p2Stake) => {
@@ -80,10 +80,10 @@ class App extends Component {
 
   loadGame = async (gameNumber) => {
     const { contract } = this.state;
-    const result = await contract.methods.fullBoard(gameNumber).call()
-    console.log(result);
-    const result2 = await contract.methods.games(gameNumber).call()
-    console.log(result2);
+    const board = await contract.methods.fullBoard(gameNumber).call()
+    this.setState({ gameboard: board });
+    const game = await contract.methods.games(gameNumber).call()
+    console.log(game);
   }
 
   handlePlaceDot = (evt, x, y) => {

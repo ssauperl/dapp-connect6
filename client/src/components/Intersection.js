@@ -4,7 +4,7 @@ import {GameContext, dotsColor} from '../game-context';
 class Dot extends Component {
    render() {
         const {dot} = this.props;
-        const classNames =`dot ${dotsColor.WHITE === dot? dotsColor.WHITE: ''}${dotsColor.BLACK === dot? dotsColor.BLACK: ''}`;
+        const classNames =`dot ${1 == dot? dotsColor.WHITE: ''}${2 == dot? dotsColor.BLACK: ''}`;
         return (
             <div className={classNames}></div>
         );
