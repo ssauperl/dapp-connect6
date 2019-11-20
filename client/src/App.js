@@ -2,6 +2,7 @@ import React, { Component } from "react";
 
 import ClaimTimeVictory from "./components/ClaimTimeVictory"
 import Gameboard from "./components/Gameboard"
+import MakeAMove from "./components/MakeAMove"
 import GameList from "./components/GameList"
 import JoinGame from "./components/JoinGame"
 import NewGame from "./components/NewGame"
@@ -14,7 +15,7 @@ import 'bulma/css/bulma.css';
 import "./App.css";
 
 class App extends Component {
-  state = { gameboard: new Array(), turn: 0, playerColor: dotsColor.WHITE, web3: null, accounts: [], selectedAccount: '', contract: null };
+  state = { gameboard: new Array(), game: {}, playerColor: dotsColor.WHITE, web3: null, accounts: [], selectedAccount: '', contract: null, move: [], gameNumber: null };
 
   //   constructor(props) {
   //     super(props);
@@ -79,21 +80,74 @@ class App extends Component {
   };
 
   loadGame = async (gameNumber) => {
-    const { contract } = this.state;
+    const { contract, selectedAccount } = this.state;
     const board = await contract.methods.fullBoard(gameNumber).call()
     this.setState({ gameboard: board });
     const game = await contract.methods.games(gameNumber).call()
-    console.log(game);
+    this.setState({ game: game });
   }
 
   handlePlaceDot = (evt, x, y) => {
-    const { gameboard, playerColor } = this.state;
+    const { gameboard, game, move } = this.state;
 
     const updatedGameboard = Object.assign([], gameboard);
-    updatedGameboard[y][x] = playerColor;
+    let updatedMove = Object.assign([], move);
 
-    this.setState({ gameboard: updatedGameboard });
+    const index = x + (19 * y);
+    updatedGameboard[index] = 2;//game.turn;
+    //move array is not good, beacuse you don't know what to update
+    // clear the org moves if you want to correct them
+    if (updatedMove.length > 3) {
+      const orgMove = { x1: move[0], y1: move[1], x2: move[2], y2: move[3] }
+      updatedMove = [];
+      if (Number.isInteger(orgMove.x1) && Number.isInteger(orgMove.y1)) {
+        updatedGameboard[orgMove.x1 + (19 * orgMove.y1)] = 0;
+      }
+      if (Number.isInteger(orgMove.x2) && Number.isInteger(orgMove.y2)) {
+        updatedGameboard[orgMove.x2 + (19 * orgMove.y2)] = 0;
+      }
+    }
+
+    updatedMove.push(x, y);
+
+
+    this.setState({ gameboard: updatedGameboard, move: updatedMove });
   };
+
+  updateMove = (x1, y1, x2, y2) => {
+    const { gameboard, game, move } = this.state;
+
+    const updatedGameboard = Object.assign([], gameboard);
+    // clear non submited move
+    const orgMove = { x1: move[0], y1: move[1], x2: move[2], y2: move[3] }
+    if (Number.isInteger(orgMove.x1) && Number.isInteger(orgMove.y1)) {
+      updatedGameboard[orgMove.x1 + (19 * orgMove.y1)] = 0;
+    }
+    if (Number.isInteger(orgMove.x2) && Number.isInteger(orgMove.y2)) {
+      updatedGameboard[orgMove.x2 + (19 * orgMove.y2)] = 0;
+    }
+
+    const updatedMove=[];
+    // update the move on gameboard
+    if (Number.isInteger(x1) && Number.isInteger(y1)) {
+      updatedGameboard[x1 + (19 * y1)] = 2;//game.turn;
+    }
+ 
+    if (Number.isInteger(x2) && Number.isInteger(y2)) {
+      updatedGameboard[x2 + (19 * y2)] = 2;//game.turn;
+    }
+    updatedMove.push(x1,y1,x2,y2);
+    this.setState({ move: updatedMove, gameboard: updatedGameboard });
+  }
+
+  makeAMove = async (x1, y1, x2, y2) => {
+    const { contract, selectedAccount, game, move, gameNumber } = this.state;
+    let result = await contract.methods.makeMove(gameNumber, x1, y1, x2, y2).send({ from: selectedAccount });
+    // clear you last move
+    this.setState({ move: [] });
+  }
+  // probably we should fetch gameboard here
+  // loadGame(gameNumber);
 
   changeAccount = (account) => {
     this.setState({ selectedAccount: account })
@@ -106,20 +160,21 @@ class App extends Component {
   }
 
   render() {
-    // if (!this.state.web3) {
-    //   //return <div>Loading Web3, accounts, and contract...</div>;
-    // }
-    const { gameboard, accounts, selectedAccount } = this.state;
+    if (!this.state.web3) {
+      return <div>Loading Web3, accounts, and contract...</div>;
+    }
+    const { gameboard, move } = this.state;
     return (
       <GameContext.Provider value={this.state}>
         <div className="App">
           <SelectAccount changeAccount={this.changeAccount} />
           <NewGame startNewGame={this.startNewGame} />
           {/* <GameList getGameList={this.getGameList}/> */}
-          <JoinGame joinGame={this.joinGame}/>
+          <JoinGame joinGame={this.joinGame} />
           {/* <ClaimTimeVictory /> */}
           <RestoreGame loadGame={this.loadGame} />
           <Gameboard gameboard={gameboard} handlePlaceDot={this.handlePlaceDot} />
+          <MakeAMove updateMove={this.updateMove} move={move} makeAMove={this.makeAMove} />
         </div>
       </GameContext.Provider>
     );

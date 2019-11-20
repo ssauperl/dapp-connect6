@@ -1,7 +1,7 @@
 import React from "react";
 export const dotsColor = {
-    BLACK: 'black',
-    WHITE: 'white'
+    BLACK: 2,
+    WHITE: 1
 }
 
 export const GameContext = React.createContext({

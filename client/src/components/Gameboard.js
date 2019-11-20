@@ -12,9 +12,6 @@ class Gameboard extends Component {
             return [... yElement].map((xElement, x) =>{
             const index = x+(19*y);
             const value = gameboard[index];
-
-            console.log(x+(19*y));
-            console.log(value);
             return(
               <Intersection key={index}
                 dot={value}
