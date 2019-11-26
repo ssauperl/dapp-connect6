@@ -3,6 +3,7 @@ import React, { Component } from "react";
 import ClaimTimeVictory from "./components/ClaimTimeVictory"
 import Gameboard from "./components/Gameboard"
 import MakeAMove from "./components/MakeAMove"
+import GameInfo from "./components/GameInfo"
 import GameList from "./components/GameList"
 import JoinGame from "./components/JoinGame"
 import NewGame from "./components/NewGame"
@@ -15,7 +16,7 @@ import 'bulma/css/bulma.css';
 import "./App.css";
 
 class App extends Component {
-  state = { gameboard: new Array(), game: {}, playerColor: dotsColor.WHITE, web3: null, accounts: [], selectedAccount: '', contract: null, move: [], gameNumber: null };
+  state = { gameboard: new Array(), game: {}, playerColor: dotsColor.WHITE, web3: null, accounts: [], selectedAccount: '', contract: null, move: [], gameInfo: {} };
 
   //   constructor(props) {
   //     super(props);
@@ -67,24 +68,40 @@ class App extends Component {
     const { selectedAccount } = this.state;
     const { contract, web3 } = this.state;
     const BN = web3.utils.BN;
-    let result = await contract.methods.newGame(new String(secPerMove), web3.utils.toWei(p2Stake, 'ether')).send({ from: selectedAccount, value: web3.utils.toWei(new BN(p1Stake), 'ether') })
+    let result = await contract.methods.newGame(new String(secPerMove), web3.utils.toWei(p2Stake, 'ether')).send({ from: selectedAccount, value: web3.utils.toWei(p1Stake, 'ether') })
     console.log(result);
   };
 
-  joinGame = async (gameNumber, p2Stake) => {
-    const { selectedAccount } = this.state;
+  joinGame = async (p2Stake) => {
+    const { selectedAccount, gameInfo } = this.state;
     const { contract, web3 } = this.state;
     const BN = web3.utils.BN;
-    let result = await contract.methods.joinGame(gameNumber).send({ from: selectedAccount, value: web3.utils.toWei(new BN(p2Stake), 'ether') })
+    let result = await contract.methods.joinGame(gameInfo.gameNumber).send({ from: selectedAccount, value: web3.utils.toWei(new BN(p2Stake), 'ether') })
+    this.updateGameInfo();
     console.log(result);
   };
 
-  loadGame = async (gameNumber) => {
-    const { contract, selectedAccount } = this.state;
-    const board = await contract.methods.fullBoard(gameNumber).call()
+  updateGameInfo = async () => {
+    const { selectedAccount, gameInfo, contract } = this.state;
+    const game = await contract.methods.games(gameInfo.gameNumber).call()
+    const updatedGameInfo = Object.assign({}, gameInfo)
+    updatedGameInfo.currentPlayer = 0;
+    if (game.player1 === selectedAccount) {
+      updatedGameInfo.currentPlayer = 1;
+    }
+    else if (game.player2 === selectedAccount) {
+      updatedGameInfo.currentPlayer = 2;
+    }
+    updatedGameInfo.turn = game.turn;
+    this.setState({ game: game, gameInfo: updatedGameInfo });
+
+  }
+
+  loadGame = async () => {
+    const { contract, selectedAccount, gameInfo } = this.state;
+    const board = await contract.methods.fullBoard(gameInfo.gameNumber).call()
     this.setState({ gameboard: board });
-    const game = await contract.methods.games(gameNumber).call()
-    this.setState({ game: game });
+    this.updateGameInfo();
   }
 
   handlePlaceDot = (evt, x, y) => {
@@ -94,7 +111,7 @@ class App extends Component {
     let updatedMove = Object.assign([], move);
 
     const index = x + (19 * y);
-    updatedGameboard[index] = 2;//game.turn;
+    updatedGameboard[index] = game.turn;
     //move array is not good, beacuse you don't know what to update
     // clear the org moves if you want to correct them
     if (updatedMove.length > 3) {
@@ -114,35 +131,9 @@ class App extends Component {
     this.setState({ gameboard: updatedGameboard, move: updatedMove });
   };
 
-  updateMove = (x1, y1, x2, y2) => {
-    const { gameboard, game, move } = this.state;
-
-    const updatedGameboard = Object.assign([], gameboard);
-    // clear non submited move
-    const orgMove = { x1: move[0], y1: move[1], x2: move[2], y2: move[3] }
-    if (Number.isInteger(orgMove.x1) && Number.isInteger(orgMove.y1)) {
-      updatedGameboard[orgMove.x1 + (19 * orgMove.y1)] = 0;
-    }
-    if (Number.isInteger(orgMove.x2) && Number.isInteger(orgMove.y2)) {
-      updatedGameboard[orgMove.x2 + (19 * orgMove.y2)] = 0;
-    }
-
-    const updatedMove=[];
-    // update the move on gameboard
-    if (Number.isInteger(x1) && Number.isInteger(y1)) {
-      updatedGameboard[x1 + (19 * y1)] = 2;//game.turn;
-    }
- 
-    if (Number.isInteger(x2) && Number.isInteger(y2)) {
-      updatedGameboard[x2 + (19 * y2)] = 2;//game.turn;
-    }
-    updatedMove.push(x1,y1,x2,y2);
-    this.setState({ move: updatedMove, gameboard: updatedGameboard });
-  }
-
   makeAMove = async (x1, y1, x2, y2) => {
-    const { contract, selectedAccount, game, move, gameNumber } = this.state;
-    let result = await contract.methods.makeMove(gameNumber, x1, y1, x2, y2).send({ from: selectedAccount });
+    const { contract, selectedAccount, game, move, gameInfo } = this.state;
+    let result = await contract.methods.makeMove(gameInfo.gameNumber, x1, y1, x2, y2).send({ from: selectedAccount });
     // clear you last move
     this.setState({ move: [] });
   }
@@ -159,22 +150,39 @@ class App extends Component {
     console.log(result);
   }
 
+  setGameNumber = (gameNumber) => {
+    this.setState({ gameInfo: { gameNumber: gameNumber } })
+  }
+
   render() {
     if (!this.state.web3) {
       return <div>Loading Web3, accounts, and contract...</div>;
     }
-    const { gameboard, move } = this.state;
+    const { gameboard, move, gameInfo } = this.state;
     return (
       <GameContext.Provider value={this.state}>
         <div className="App">
-          <SelectAccount changeAccount={this.changeAccount} />
-          <NewGame startNewGame={this.startNewGame} />
+
+          <div className="columns">
+
+            <div className="column is-half">
+              <SelectAccount changeAccount={this.changeAccount} />
+            </div>
+            <div className="column is-half">
+              <GameInfo gameInfo={gameInfo} updateGameNumber={this.setGameNumber} />
+            </div>
+          </div>
+          <div className="columns">
+            <div className="column is-half"><NewGame startNewGame={this.startNewGame} /></div>
+            <div className="column is-half"><JoinGame joinGame={this.joinGame} /><RestoreGame loadGame={this.loadGame} /></div>
+            <div className="column is-half"></div>
+          </div>
+          <div className="columns">
+            <div className="column is-three-quarters"><Gameboard gameboard={gameboard} handlePlaceDot={this.handlePlaceDot} /></div>
+            <div className="column is-one-quarter"><MakeAMove move={move} makeAMove={this.makeAMove} /></div>
+          </div>
           {/* <GameList getGameList={this.getGameList}/> */}
-          <JoinGame joinGame={this.joinGame} />
           {/* <ClaimTimeVictory /> */}
-          <RestoreGame loadGame={this.loadGame} />
-          <Gameboard gameboard={gameboard} handlePlaceDot={this.handlePlaceDot} />
-          <MakeAMove updateMove={this.updateMove} move={move} makeAMove={this.makeAMove} />
         </div>
       </GameContext.Provider>
     );

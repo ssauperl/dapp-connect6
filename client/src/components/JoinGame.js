@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 
 class JoinGame extends Component {
-    state = { form: {} }
+    state = { form: { p2Stake: 0 } }
 
     handleInputChange = evt => {
         const { name, value } = evt.target;
@@ -14,22 +14,17 @@ class JoinGame extends Component {
     handleSubmit = evt => {
         evt.preventDefault();
         const { joinGame } = this.props;
-        const { gameNumber, p2Stake } = this.state.form;
-        joinGame(gameNumber, p2Stake).catch(console.log)
+        const { p2Stake } = this.state.form;
+        joinGame(p2Stake).catch(console.log)
     };
     render() {
+        const { form } = this.state;
         return (
             <div>
                 <div className="field">
-                    <label className="label">Game Number</label>
-                    <div className="control">
-                        <input className="input" onChange={this.handleInputChange} name="gameNumber" type="number" placeholder="Game Number" />
-                    </div>
-                </div>
-                <div className="field">
                     <label className="label">Your stake (ETH)</label>
                     <div className="control">
-                        <input className="input" onChange={this.handleInputChange} name="p2Stake" type="number" placeholder="ETH" />
+                        <input className="input" onChange={this.handleInputChange} name="p2Stake" type="number" placeholder="ETH" value={form.p2Stake} />
                     </div>
                 </div>
                 <div className="field is-grouped">

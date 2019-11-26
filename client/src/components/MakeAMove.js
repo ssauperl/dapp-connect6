@@ -1,13 +1,6 @@
 import React, { Component } from "react";
 
 class MakeAMove extends Component {
-    handleInputChange = evt => {
-        const { name, value } = evt.target;
-        const { move, updateMove } = this.props;
-        const updatedForm = { x1: move[0], y1: move[1], x2: move[2], y2: move[3] }
-        updatedForm[name] = Number(value);
-        updateMove(updatedForm.x1, updatedForm.y1, updatedForm.x2, updatedForm.y2);
-    };
 
     handleSubmit = evt => {
         evt.preventDefault();
@@ -20,34 +13,28 @@ class MakeAMove extends Component {
 
         return (
             <div>
-                {/* <div className="field">
-                    <label className="label">Game Number</label>
-                    <div className="control">
-                        <input className="input" onChange={this.handleInputChange} name="gameNumber" type="number" placeholder="Game Number" />
-                    </div>
-                </div> */}
                 <div className="field">
                     <label className="label">X1</label>
                     <div className="control">
-                        <input className="input" name="x1" onChange={this.handleInputChange} type="number" min="0" max="18" placeholder="x1" value={move[0]} />
+                        <input className="input" name="x1" disabled={true} type="number" min="0" max="18" placeholder="x1" value={move[0]} />
                     </div>
                 </div>
                 <div className="field">
                     <label className="label">Y1</label>
                     <div className="control">
-                        <input className="input" name="y1" onChange={this.handleInputChange} type="number" min="0" max="18" placeholder="y1" value={move[1]} />
+                        <input className="input" name="y1" disabled={true} type="number" min="0" max="18" placeholder="y1" value={move[1]} />
                     </div>
                 </div>
                 <div className="field">
                     <label className="label">X2</label>
                     <div className="control">
-                        <input className="input" name="x2" onChange={this.handleInputChange} type="number" min="0" max="18" placeholder="x2" value={move[2]} />
+                        <input className="input" name="x2" disabled={true} type="number" min="0" max="18" placeholder="x2" value={move[2]} />
                     </div>
                 </div>
                 <div className="field">
                     <label className="label">Y1</label>
                     <div className="control">
-                        <input className="input" name="y2" onChange={this.handleInputChange} type="number" min="0" max="18" placeholder="y2" value={move[3]} />
+                        <input className="input" name="y2" disabled={true} type="number" min="0" max="18" placeholder="y2" value={move[3]} />
                     </div>
                 </div>
                 <div className="field is-grouped">

@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 
 class NewGame extends Component {
-    state = { form: {} }
+    state = { form: { timePerMove: "900", p1Stake: "0", p2Stake: "0" } }
 
     handleInputChange = evt => {
         const { name, value } = evt.target;
@@ -14,29 +14,30 @@ class NewGame extends Component {
     handleSubmit = evt => {
         evt.preventDefault();
         const { startNewGame } = this.props;
-        const { timePerMove, p1Stake, p2Stake} = this.state.form;
+        const { timePerMove, p1Stake, p2Stake } = this.state.form;
         startNewGame(timePerMove, p1Stake, p2Stake).catch(console.log)
     };
 
     render() {
+        const { form } = this.state;
         return (
             <div>
                 <div className="field">
                     <label className="label">Time Per Move (s)</label>
                     <div className="control">
-                        <input className="input" name="timePerMove" onChange={this.handleInputChange} type="number" placeholder="s" />
+                        <input className="input" name="timePerMove" onChange={this.handleInputChange} type="number" placeholder="s" value={form.timePerMove} />
                     </div>
                 </div>
                 <div className="field">
                     <label className="label">Your stake (ETH)</label>
                     <div className="control">
-                        <input className="input" name="p1Stake" onChange={this.handleInputChange} type="number" placeholder="ETH" />
+                        <input className="input" name="p1Stake" onChange={this.handleInputChange} type="number" placeholder="ETH" value={form.p1Stake} />
                     </div>
                 </div>
                 <div className="field">
                     <label className="label">Opponent's stake (ETH)</label>
                     <div className="control">
-                        <input className="input" name="p2Stake" onChange={this.handleInputChange} type="number" placeholder="ETH" />
+                        <input className="input" name="p2Stake" onChange={this.handleInputChange} type="number" placeholder="ETH" value={form.p2Stake} />
                     </div>
                 </div>
                 <div className="field is-grouped">
