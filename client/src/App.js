@@ -93,6 +93,7 @@ class App extends Component {
       updatedGameInfo.currentPlayer = 2;
     }
     updatedGameInfo.turn = game.turn;
+    updatedGameInfo.deadline = game.deadline;
     this.setState({ game: game, gameInfo: updatedGameInfo });
 
   }
