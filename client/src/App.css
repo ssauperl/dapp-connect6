@@ -30,3 +30,8 @@
     transform: rotate(360deg);
   }
 }
+
+.tabs li a.is-active {
+  border-bottom-color: #3273dc;
+  color: #3273dc;
+}

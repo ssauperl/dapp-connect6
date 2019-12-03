@@ -10,6 +10,7 @@ import JoinGame from "./components/JoinGame"
 import NewGame from "./components/NewGame"
 import RestoreGame from "./components/RestoreGame"
 import SelectAccount from "./components/SelectAccount"
+import HashAvatar from "./components/HashAvatar"
 import { GameContext, dotsColor } from './game-context';
 import Connect6 from "./contracts/Connect6";
 import getWeb3 from "./utils/getWeb3";
@@ -19,7 +20,7 @@ import {
   BrowserRouter as Router,
   Switch,
   Route,
-  Link
+  NavLink
 } from "react-router-dom";
 
 class App extends Component {
@@ -179,14 +180,25 @@ class App extends Component {
           <div className="App">
             <div className="columns">
               <div className="column">
-                <SelectAccount changeAccount={this.changeAccount} />
+                <div class="box">
+                  <article className="media">
+                    <div className="media-left">
+                      <HashAvatar hash={this.state.selectedAccount} />
+                    </div>
+                    <div className="media-content">
+                      <div className="content">
+                        <SelectAccount changeAccount={this.changeAccount} />
+                      </div>
+                    </div>
+                  </article>
+                </div>
               </div>
             </div>
             <div className="tabs is-centered">
               <ul>
-                <li className="is-active"><Link to="/">Create game</Link></li>
-                <li><Link to="/join">Join game</Link></li>
-                <li><Link to="/game">Game</Link></li>
+                <li><NavLink exact to="/" activeClassName="is-active">Create game</NavLink></li>
+                <li><NavLink to="/join" activeClassName="is-active">Join game</NavLink></li>
+                <li><NavLink to="/game" activeClassName="is-active">Game</NavLink></li>
               </ul>
             </div>
             <Switch>
