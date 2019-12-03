@@ -4,6 +4,7 @@ import ClaimTimeVictory from "./components/ClaimTimeVictory"
 import Gameboard from "./components/Gameboard"
 import MakeAMove from "./components/MakeAMove"
 import GameInfo from "./components/GameInfo"
+import GameNumber from "./components/GameNumber"
 import GameList from "./components/GameList"
 import JoinGame from "./components/JoinGame"
 import NewGame from "./components/NewGame"
@@ -14,6 +15,12 @@ import Connect6 from "./contracts/Connect6";
 import getWeb3 from "./utils/getWeb3";
 import 'bulma/css/bulma.css';
 import "./App.css";
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link
+} from "react-router-dom";
 
 class App extends Component {
   state = { gameboard: new Array(), game: {}, playerColor: dotsColor.WHITE, web3: null, accounts: [], selectedAccount: '', contract: null, move: [], gameInfo: {} };
@@ -155,37 +162,64 @@ class App extends Component {
     this.setState({ gameInfo: { gameNumber: gameNumber } })
   }
 
+  claimTimeVictory = async () => {
+    const { contract, selectedAccount, gameInfo } = this.state;
+    let result = await contract.methods.claimTimeVictory(gameInfo.gameNumber).send({ from: selectedAccount });
+    console.log(result);
+  }
+
   render() {
     if (!this.state.web3) {
       return <div>Loading Web3, accounts, and contract...</div>;
     }
     const { gameboard, move, gameInfo } = this.state;
     return (
-      <GameContext.Provider value={this.state}>
-        <div className="App">
-
-          <div className="columns">
-
-            <div className="column is-half">
-              <SelectAccount changeAccount={this.changeAccount} />
+      <Router>
+        <GameContext.Provider value={this.state}>
+          <div className="App">
+            <div className="columns">
+              <div className="column">
+                <SelectAccount changeAccount={this.changeAccount} />
+              </div>
             </div>
-            <div className="column is-half">
-              <GameInfo gameInfo={gameInfo} updateGameNumber={this.setGameNumber} />
+            <div className="tabs is-centered">
+              <ul>
+                <li className="is-active"><Link to="/">Create game</Link></li>
+                <li><Link to="/join">Join game</Link></li>
+                <li><Link to="/game">Game</Link></li>
+              </ul>
             </div>
+            <Switch>
+              <Route path="/join">
+                <div className="container">
+                  <GameNumber gameInfo={gameInfo} updateGameNumber={this.setGameNumber} />
+                  <JoinGame joinGame={this.joinGame} />
+                  <GameList getGameList={this.getGameList} />
+                </div>
+              </Route>
+              <Route path="/game">
+                <div className="container">
+                  <div className="columns">
+                    <div className="column is-three-quarters"><Gameboard gameboard={gameboard} handlePlaceDot={this.handlePlaceDot} /></div>
+                    <div className="column is-one-quarter">
+                      <GameNumber gameInfo={gameInfo} updateGameNumber={this.setGameNumber} />
+                      <GameInfo gameInfo={gameInfo} />
+                      <RestoreGame loadGame={this.loadGame} />
+                      <MakeAMove move={move} makeAMove={this.makeAMove} />
+                      <ClaimTimeVictory claimTimeVictory={this.claimTimeVictory} />
+                    </div>
+                  </div>
+                </div>
+              </Route>
+              <Route path="/">
+                <div className="container">
+                  <NewGame startNewGame={this.startNewGame} />
+                </div>
+              </Route>
+            </Switch>
           </div>
-          <div className="columns">
-            <div className="column is-half"><NewGame startNewGame={this.startNewGame} /></div>
-            <div className="column is-half"><JoinGame joinGame={this.joinGame} /><RestoreGame loadGame={this.loadGame} /></div>
-            <div className="column is-half"></div>
-          </div>
-          <div className="columns">
-            <div className="column is-three-quarters"><Gameboard gameboard={gameboard} handlePlaceDot={this.handlePlaceDot} /></div>
-            <div className="column is-one-quarter"><MakeAMove move={move} makeAMove={this.makeAMove} /></div>
-          </div>
-          {/* <GameList getGameList={this.getGameList}/> */}
-          {/* <ClaimTimeVictory /> */}
-        </div>
-      </GameContext.Provider>
+        </GameContext.Provider>
+      </Router>
     );
   }
 }
