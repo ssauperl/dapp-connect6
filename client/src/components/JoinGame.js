@@ -20,7 +20,7 @@ class JoinGame extends Component {
     render() {
         const { form } = this.state;
         return (
-            <div>
+            <>
                 <div className="field">
                     <label className="label">Your stake (ETH)</label>
                     <div className="control">
@@ -32,7 +32,7 @@ class JoinGame extends Component {
                         <button className="button is-link" onClick={this.handleSubmit}>Join Game</button>
                     </div>
                 </div>
-            </div>
+            </>
         );
     }
 }

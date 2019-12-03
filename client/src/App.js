@@ -24,7 +24,7 @@ import {
 } from "react-router-dom";
 
 class App extends Component {
-  state = { gameboard: new Array(), game: {}, playerColor: dotsColor.WHITE, web3: null, accounts: [], selectedAccount: '', contract: null, move: [], gameInfo: {} };
+  state = { gameboard: new Array(), game: {}, playerColor: dotsColor.WHITE, web3: null, accounts: [], selectedAccount: '', contract: null, move: [], gameInfo: {}, gameList: [] };
 
   //   constructor(props) {
   //     super(props);
@@ -76,7 +76,8 @@ class App extends Component {
     const { selectedAccount } = this.state;
     const { contract, web3 } = this.state;
     const BN = web3.utils.BN;
-    let result = await contract.methods.newGame(new String(secPerMove), web3.utils.toWei(p2Stake, 'ether')).send({ from: selectedAccount, value: web3.utils.toWei(p1Stake, 'ether') })
+    const { toHex } = web3.utils;
+    let result = await contract.methods.newGame(toHex(secPerMove), web3.utils.toWei(p2Stake, 'ether')).send({ from: selectedAccount, value: web3.utils.toWei(p1Stake, 'ether') })
     console.log(result);
   };
 
@@ -153,10 +154,28 @@ class App extends Component {
     this.setState({ selectedAccount: account })
   }
 
-  getGameList = async () => {
-    const { contract, web3 } = this.state;
-    const result = await contract.methods.getGames(0).call()
-    console.log(result);
+  getGameList = async (index) => {
+    const { contract } = this.state;
+    let gameCount = await contract.methods.getGameCount().call()
+    console.log(gameCount);
+
+    //check this stuff
+    const gameNumbers = [];
+    let startIndex = 0;
+    if (gameCount > 10) {
+      startIndex = gameCount - 10 * index;
+    }
+    for (var i = startIndex; i <= gameCount; i++) {
+      gameNumbers.push(i);
+    }
+    const gameList = []
+    for (let index = 0; index < gameNumbers.length; index++) {
+      const game = await contract.methods.games(gameNumbers[index]).call()
+      game.gameNumber = gameNumbers[index];
+      gameList.push(game);
+    }
+    //till here
+    this.setState({ gameList: gameList });
   }
 
   setGameNumber = (gameNumber) => {
@@ -173,17 +192,17 @@ class App extends Component {
     if (!this.state.web3) {
       return <div>Loading Web3, accounts, and contract...</div>;
     }
-    const { gameboard, move, gameInfo } = this.state;
+    const { gameboard, move, gameInfo, selectedAccount, gameList } = this.state;
     return (
       <Router>
         <GameContext.Provider value={this.state}>
           <div className="App">
             <div className="columns">
               <div className="column">
-                <div class="box">
+                <div className="box">
                   <article className="media">
                     <div className="media-left">
-                      <HashAvatar hash={this.state.selectedAccount} />
+                      <HashAvatar hash={selectedAccount} />
                     </div>
                     <div className="media-content">
                       <div className="content">
@@ -206,7 +225,7 @@ class App extends Component {
                 <div className="container">
                   <GameNumber gameInfo={gameInfo} updateGameNumber={this.setGameNumber} />
                   <JoinGame joinGame={this.joinGame} />
-                  <GameList getGameList={this.getGameList} />
+                  <GameList getGameList={this.getGameList} gameList={gameList} />
                 </div>
               </Route>
               <Route path="/game">

@@ -206,12 +206,7 @@ function checkVictory(uint gameNum, uint8 playerNum) public view returns (uint8)
     }
   }
 
-  function getGames(uint page) public view returns(uint[10] memory result){
-      uint8 index = 0;
-      uint lastGame = games.length - 1;
-          for (uint i = lastGame - (10*page); i < games.length; i++) {
-        result[index] = i;
-        index++;
-    }
+  function getGameCount() public view returns(uint result){
+      result = games.length - 1;
   }
 }
