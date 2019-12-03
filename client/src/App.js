@@ -154,27 +154,22 @@ class App extends Component {
     this.setState({ selectedAccount: account })
   }
 
-  getGameList = async (index) => {
+  getGameList = async () => {
     const { contract } = this.state;
     let gameCount = await contract.methods.getGameCount().call()
     console.log(gameCount);
 
-    //check this stuff
-    const gameNumbers = [];
     let startIndex = 0;
     if (gameCount > 10) {
-      startIndex = gameCount - 10 * index;
+      startIndex = gameCount - 11; //index=count-1 -> 10+1 
     }
-    for (var i = startIndex; i <= gameCount; i++) {
-      gameNumbers.push(i);
-    }
+
     const gameList = []
-    for (let index = 0; index < gameNumbers.length; index++) {
-      const game = await contract.methods.games(gameNumbers[index]).call()
-      game.gameNumber = gameNumbers[index];
+    for (var i = startIndex; i <= gameCount; i++) {
+      const game = await contract.methods.games(i).call()
+      game.gameNumber = i; // game object doesn't store index, so we have to remember it
       gameList.push(game);
     }
-    //till here
     this.setState({ gameList: gameList });
   }
 

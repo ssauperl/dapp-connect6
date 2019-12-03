@@ -21,21 +21,7 @@ class GameList extends Component {
     handleSubmit = evt => {
         evt.preventDefault();
         const { getGameList } = this.props;
-        getGameList(this.state.page).catch(console.log)
-    };
-
-    handleNextPage = evt => {
-        evt.preventDefault();
-        const { getGameList } = this.props;
-        const page = this.state.page++;
-        getGameList(page).catch(console.log)
-    };
-
-    handlePreviousPage = evt => {
-        evt.preventDefault();
-        const { getGameList } = this.props;
-        const page = this.state.page--;
-        getGameList(page).catch(console.log)
+        getGameList().catch(console.log)
     };
 
     render() {
@@ -44,7 +30,7 @@ class GameList extends Component {
             <>
                 <div className="field is-grouped">
                     <div className="control">
-                        <button className="button is-link" onClick={this.handleSubmit}>Fetch games</button>
+                        <button className="button is-link" onClick={this.handleSubmit}>Load list</button>
                     </div>
                 </div>
                 <table className="table">
@@ -60,13 +46,10 @@ class GameList extends Component {
                     </thead>
                     <tbody>
                         {gameList.map((game) =>
-                            <Row game={game} />
+                            <Row key={game.gameNumber} game={game} />
                         )}
                     </tbody>
                 </table>
-                <button className="button" onClick={this.handlePreviousPage}>Previous</button>
-                {this.state.page}
-                <button className="button" onClick={this.handleNextPage}>Next</button>
             </>
         );
     }
