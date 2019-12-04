@@ -22,9 +22,10 @@ import {
   Route,
   NavLink
 } from "react-router-dom";
+import { runInThisContext } from "vm";
 
 class App extends Component {
-  state = { gameboard: new Array(), game: {}, playerColor: dotsColor.WHITE, web3: null, accounts: [], selectedAccount: '', contract: null, move: [], gameInfo: {}, gameList: [] };
+  state = { gameboard: new Array(), game: {}, playerColor: dotsColor.WHITE, web3: null, accounts: [], selectedAccount: '', contract: null, move: [], gameInfo: { p2Stake: 0 }, gameList: [] };
 
   //   constructor(props) {
   //     super(props);
@@ -56,7 +57,6 @@ class App extends Component {
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
       this.setState({ web3, accounts, contract: instance, selectedAccount: accounts[0] }, this.runExample);
-      //this.initTheBoard();
       //this.getGameList();
     } catch (error) {
       // Catch any errors for any of the above operations.
@@ -65,11 +65,6 @@ class App extends Component {
       );
       console.error(error);
     }
-  }
-
-  initTheBoard = () => {
-    //const gameboard = [... new Array(19)].map((o) => { return new Array(19) });
-    // this.setState({ gameboard });
   }
 
   startNewGame = async (secPerMove, p1Stake, p2Stake) => {
@@ -86,32 +81,35 @@ class App extends Component {
     const { contract, web3 } = this.state;
     const BN = web3.utils.BN;
     let result = await contract.methods.joinGame(gameInfo.gameNumber).send({ from: selectedAccount, value: web3.utils.toWei(new BN(p2Stake), 'ether') })
-    this.updateGameInfo();
     console.log(result);
+    this.updateGameInfo();
   };
 
   updateGameInfo = async () => {
-    const { selectedAccount, gameInfo, contract } = this.state;
-    const game = await contract.methods.games(gameInfo.gameNumber).call()
-    const updatedGameInfo = Object.assign({}, gameInfo)
-    updatedGameInfo.currentPlayer = 0;
+    const { gameInfo } = this.state;
+    const updatedGameInfo = await this.createGameInfo(gameInfo.gameNumber);
+    this.setState({ gameInfo: updatedGameInfo });
+  }
+
+  createGameInfo = async (gameNumber) => {
+    const { contract, selectedAccount } = this.state;
+    const game = await contract.methods.games(gameNumber).call()
+    game.currentPlayer = 0;
     if (game.player1 === selectedAccount) {
-      updatedGameInfo.currentPlayer = 1;
+      game.currentPlayer = 1;
     }
     else if (game.player2 === selectedAccount) {
-      updatedGameInfo.currentPlayer = 2;
+      game.currentPlayer = 2;
     }
-    updatedGameInfo.turn = game.turn;
-    updatedGameInfo.deadline = game.deadline;
-    this.setState({ game: game, gameInfo: updatedGameInfo });
-
+    game.gameNumber = gameNumber;
+    return game;
   }
 
   loadGame = async () => {
-    const { contract, selectedAccount, gameInfo } = this.state;
+    const { contract, gameInfo } = this.state;
     const board = await contract.methods.fullBoard(gameInfo.gameNumber).call()
-    this.setState({ gameboard: board });
-    this.updateGameInfo();
+    const updatedGameInfo = await this.createGameInfo(gameInfo.gameNumber);
+    this.setState({ gameboard: board, gameInfo: updatedGameInfo });
   }
 
   handlePlaceDot = (evt, x, y) => {
@@ -173,8 +171,9 @@ class App extends Component {
     this.setState({ gameList: gameList });
   }
 
-  setGameNumber = (gameNumber) => {
-    this.setState({ gameInfo: { gameNumber: gameNumber } })
+  setGameNumber = async (gameNumber) => {
+    const updatedGameInfo = await this.createGameInfo(gameNumber);
+    this.setState({ gameInfo: updatedGameInfo })
   }
 
   claimTimeVictory = async () => {
@@ -219,8 +218,8 @@ class App extends Component {
               <Route path="/join">
                 <div className="container">
                   <GameNumber gameInfo={gameInfo} updateGameNumber={this.setGameNumber} />
-                  <JoinGame joinGame={this.joinGame} />
-                  <GameList getGameList={this.getGameList} gameList={gameList} />
+                  <JoinGame gameInfo={gameInfo} joinGame={this.joinGame} />
+                  <GameList getGameList={this.getGameList} gameList={gameList} selectGame={this.setGameNumber} gameInfo={gameInfo}/>
                 </div>
               </Route>
               <Route path="/game">

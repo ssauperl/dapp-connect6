@@ -42,7 +42,8 @@ contract Connect6 {
     // make the first move in the center of the board
     g.board[boardSize / 2][boardSize / 2] = 1;
     emit LogGameCreated(games.length - 1);
-  }
+  }    //check this stuff
+
   
   function joinGame(uint gameNum) public payable {
     Game storage g = games[gameNum];
