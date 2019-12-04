@@ -109,7 +109,7 @@ class App extends Component {
     const { contract, gameInfo } = this.state;
     const board = await contract.methods.fullBoard(gameInfo.gameNumber).call()
     const updatedGameInfo = await this.createGameInfo(gameInfo.gameNumber);
-    this.setState({ gameboard: board, gameInfo: updatedGameInfo });
+    this.setState({ gameboard: board, gameInfo: updatedGameInfo, move:[] });
   }
 
   handlePlaceDot = (evt, x, y) => {
@@ -140,13 +140,11 @@ class App extends Component {
   };
 
   makeAMove = async (x1, y1, x2, y2) => {
-    const { contract, selectedAccount, game, move, gameInfo } = this.state;
+    const { contract, selectedAccount, gameInfo } = this.state;
     let result = await contract.methods.makeMove(gameInfo.gameNumber, x1, y1, x2, y2).send({ from: selectedAccount });
-    // clear you last move
-    this.setState({ move: [] });
+    console.log(result);
+    await this.loadGame();
   }
-  // probably we should fetch gameboard here
-  // loadGame(gameNumber);
 
   changeAccount = (account) => {
     this.setState({ selectedAccount: account })
