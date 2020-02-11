@@ -113,13 +113,13 @@ class App extends Component {
   }
 
   handlePlaceDot = (evt, x, y) => {
-    const { gameboard, game, move } = this.state;
+    const { gameboard, gameInfo, move } = this.state;
 
     const updatedGameboard = Object.assign([], gameboard);
     let updatedMove = Object.assign([], move);
 
     const index = x + (19 * y);
-    updatedGameboard[index] = game.turn;
+    updatedGameboard[index] = gameInfo.turn;
     //move array is not good, beacuse you don't know what to update
     // clear the org moves if you want to correct them
     if (updatedMove.length > 3) {
